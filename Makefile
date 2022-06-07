@@ -1,14 +1,10 @@
 start:
 	php artisan serve --host 0.0.0.0
 
-watch:
-	npm run watch
-
-migrate:
-	php artisan migrate
-
-console:
-	php artisan tinker
+setup:
+	composer install
+	cp -n .env.example .env|| true
+	php artisan key:gen --ansi
 
 log:
 	tail -f storage/logs/laravel.log
@@ -20,4 +16,4 @@ deploy:
 	git push heroku
 
 lint:
-	composer exec --verbose phpcs -- --standard=PSR12 src bin
+	composer exec --verbose phpcs -- --standard=PSR12 routes
