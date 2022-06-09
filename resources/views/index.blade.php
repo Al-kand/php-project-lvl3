@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layout')
 
 @section('content')
     <div class="container-lg">
@@ -8,9 +8,8 @@
                 <tr>
                     @foreach ($urls as $url)
                         <th>{{ $url->id }}</th>
-                        <th>{{ $url >name }}</th>
+                        <th>{{ $url->name }}</th>
                     @endforeach
-
                 </tr>
             </table>
         </div>
