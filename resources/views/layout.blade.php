@@ -49,8 +49,19 @@
     </header>
 
     <main class="flex-grow-1">
+        @error('url.name')
+            <div class="alert alert-danger" role="alert">
+                Некорректный URL
+            </div>
+        @enderror
+        @error('url.name', 'unique')
+            <div class="alert alert-info" role="alert">
+                Страница уже существует
+            </div>
+        @enderror
+
         <div class="container-lg mt-3">
-            @yield('content')            
+            @yield('content')
         </div>
     </main>
 </body>

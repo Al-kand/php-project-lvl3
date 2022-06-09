@@ -21,8 +21,12 @@ Route::view('/', 'main')->name('main');
 
 Route::post('urls', function (Request $request) {
 
+    $request->validateWithBag('unique', [
+        'url.name' => 'unique:urls,name'
+    ]);
+
     $request->validate([
-        'url.name' => 'required|unique:urls,name|max:255'
+        'url.name' => 'required|max:255'
     ]);
 
     $name = $request->input('url')['name'];
@@ -31,7 +35,8 @@ Route::post('urls', function (Request $request) {
         'name' => $name,
         'created_at' => Carbon::now()
     ]);
-    return redirect()->route('urls.show', $id);
+
+    return redirect()->route('urls.show', $id)->withErrorsBag('unique');
 })->name('urls.store');
 
 Route::get('urls/{id}', function ($id) {
