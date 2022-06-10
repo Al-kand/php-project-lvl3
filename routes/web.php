@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
+use DiDom\Document;
+use Illuminate\Support\Collection;
+
+// use DiDom\Query;
 
 Route::view('/', 'main')->name('main');
 
@@ -56,11 +60,27 @@ Route::get('urls', function () {
 Route::post('urls/{id}/checks', function ($id) {
 
     $url = DB::table('urls')->find($id)->name;
-
     $response = Http::get($url);
+
+    try {
+        $document = new Document('$url', true);
+        $title = optional($document->first('head>title'))->text();
+        $h1 = optional($document->first('body h1'))->text();
+        $description = optional(
+            $document->first('head>meta[name="description"]::attr(content)'),
+            fn ($value) => $value
+        );
+    } catch (\Throwable $th) {
+        $title = null;
+        $h1 = null;
+        $description = null;
+    }
 
     DB::table('url_checks')->insert([
         'url_id' => $id,
+        'title' => $title,
+        'h1' => $h1,
+        'description' => $description,
         'status_code' => $response->status(),
         'created_at' => Carbon::now()
     ]);
