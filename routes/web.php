@@ -63,7 +63,7 @@ Route::post('urls/{id}/checks', function ($id) {
     $response = Http::get($url);
 
     try {
-        $document = new Document('$url', true);
+        $document = new Document($url, true);
         $title = optional($document->first('head>title'))->text();
         $h1 = optional($document->first('body h1'))->text();
         $description = optional(
