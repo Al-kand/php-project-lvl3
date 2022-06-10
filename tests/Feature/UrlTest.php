@@ -17,15 +17,20 @@ class UrlTest extends TestCase
 
         $this->faker = Factory::create();
 
-        $data = array_map(
+        $urls = array_map(
             fn () => [
-                'name' => $this->faker->unique()->url(),
+                'name' => $this->getUrlName($this->faker->unique()->url()),
                 'created_at' => $this->faker->dateTime()
             ],
             range(0, 3)
         );
 
-        DB::table('urls')->insert($data);
+        DB::table('urls')->insert($urls);
+    }
+
+    private function getUrlName($url)
+    {
+        return substr($url, 0, strpos($url, '/', 8));
     }
 
     public function testMain()
@@ -44,25 +49,39 @@ class UrlTest extends TestCase
 
     public function testStore()
     {
-        $name = ['name' => $this->faker->unique()->url()];
-        $data = ['url' => $name];
+        $url = $this->faker->unique()->url();
+
+        $data['url'] = ['name' => $url];
         $response = $this->post(route('urls.store'), $data);
 
-        $url = DB::table('urls')->where($name)->first();
+        $name = $this->getUrlName($url);
+        $url = DB::table('urls')->where('name', $name)->first();
         $response->assertRedirect(route('urls.show', $url->id));
 
         $response->assertSessionHasNoErrors();
+        $response->assertStatus(302);
     }
 
     public function testShow()
     {
         $id = DB::table('urls')->insertGetId([
-            'name' => $this->faker->unique()->url(),
+            'name' => $this->getUrlName($this->faker->unique()->url()),
             'created_at' => $this->faker->dateTime()
         ]);
 
         $response = $this->get(route('urls.show', $id));
 
         $response->assertOk();
+    }
+
+    public function testUrlsChecks()
+    {
+        $id = 1;
+        $response = $this->post(route('urls.checks', $id));
+        $response->assertRedirect(route('urls.show', $id));
+        $response->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('url_checks', ['url_id' => $id]);
+        $response->assertStatus(302);
     }
 }

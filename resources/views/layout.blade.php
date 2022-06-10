@@ -60,9 +60,8 @@
             </div>
         @enderror
 
-        <div class="container-lg mt-3">
-            @yield('content')
-        </div>
+        @yield('content')
+
     </main>
 </body>
 

@@ -5,46 +5,58 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
+use Illuminate\Support\Arr;
 
 Route::view('/', 'main')->name('main');
 
 Route::post('urls', function (Request $request) {
 
-    $request->validateWithBag('unique', [
-        'url.name' => 'unique:urls,name'
-    ]);
-
     $request->validate([
-        'url.name' => 'required|max:255'
+        'url.name' => 'required|max:255|url'
     ]);
 
-    $name = $request->input('url')['name'];
+    $inputUrl = $request->input('url')['name'];
+    $parsedUrl = Arr::only(parse_url($inputUrl), ['scheme', 'host']);
+    $name = implode("://", $parsedUrl);
 
-    $id = DB::table('urls')->insertGetId([
-        'name' => $name,
-        'created_at' => Carbon::now()
-    ]);
+    if (DB::table('urls')->where('name', $name)->exists()) {
+        $id = DB::table('urls')->where('name', $name)->value('id');
+    } else {
+        $id = DB::table('urls')->insertGetId([
+            'name' => $name,
+            'created_at' => Carbon::now()
+        ]);
+    }
 
-    return redirect()->route('urls.show', $id)->withErrorsBag('unique');
+    return redirect()->route('urls.show', $id); //session status
 })->name('urls.store');
 
 Route::get('urls/{id}', function ($id) {
+
     $url = DB::table('urls')->find($id);
+    $url->checks = DB::table('url_checks')->where('url_id', $id)->orderBy('created_at', 'desc')->get();
+
     return view('show', compact('url'));
 })->name('urls.show');
 
 Route::get('urls', function () {
-    $urls = DB::table('urls')->orderBy('id')->get()->all();
+    $latestCheck = DB::table('url_checks')
+        ->select('url_id', 'status_code', DB::raw('MAX(created_at) as last_check_created_at'))
+        ->groupBy('url_id', 'status_code');
+
+    $urls = DB::table('urls')->orderBy('created_at', 'asc')
+        ->leftJoinSub($latestCheck, 'latest_check', function ($join) {
+            $join->on('urls.id', '=', 'latest_check.url_id');
+        })
+        ->get();
+
     return view('index', compact('urls'));
 })->name('urls.index');
+
+Route::post('urls/{id}/checks', function ($id) {
+    DB::table('url_checks')->insert([
+        'url_id' => $id,
+        'created_at' => Carbon::now()
+    ]);
+    return redirect()->route('urls.show', $id); //session status
+})->name('urls.checks');
