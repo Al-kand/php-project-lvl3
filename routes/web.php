@@ -4,8 +4,8 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Http;
 
 Route::view('/', 'main')->name('main');
 
@@ -54,8 +54,14 @@ Route::get('urls', function () {
 })->name('urls.index');
 
 Route::post('urls/{id}/checks', function ($id) {
+
+    $url = DB::table('urls')->find($id)->name;
+
+    $response = Http::get($url);
+
     DB::table('url_checks')->insert([
         'url_id' => $id,
+        'status_code' => $response->status(),
         'created_at' => Carbon::now()
     ]);
     return redirect()->route('urls.show', $id); //session status

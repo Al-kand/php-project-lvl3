@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Illuminate\Support\Facades\DB;
 use Faker\Factory;
+use Illuminate\Support\Facades\Http;
 
 class UrlTest extends TestCase
 {
@@ -76,6 +77,7 @@ class UrlTest extends TestCase
 
     public function testUrlsChecks()
     {
+        Http::fake();
         $id = 1;
         $response = $this->post(route('urls.checks', $id));
         $response->assertRedirect(route('urls.show', $id));
