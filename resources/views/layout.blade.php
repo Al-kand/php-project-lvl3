@@ -47,21 +47,13 @@
             </div>
         </nav>
     </header>
-
     <main class="flex-grow-1">
         @error('url.name')
             <div class="alert alert-danger" role="alert">
                 Некорректный URL
             </div>
         @enderror
-        @error('url.name', 'unique')
-            <div class="alert alert-info" role="alert">
-                Страница уже существует
-            </div>
-        @enderror
-
         @yield('content')
-
     </main>
 </body>
 

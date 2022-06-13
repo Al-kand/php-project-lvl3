@@ -1,6 +1,12 @@
 @extends('layout')
 
 @section('content')
+    {{-- @if ($message = Session::get('message')) --}}
+    @if ($session = session()->get('status'))
+        <div class="alert alert-{{ $session['css'] ?? 'success' }}" role="alert">
+            <p>{{ $session['message'] }}</p>
+        </div>
+    @endif
     <div class="container-lg">
         <h1 class="mt-5 mb-3">Сайт: {{ $url->name }}</h1>
         <div class="table-responsive">
@@ -43,8 +49,6 @@
                     <td>{{ $check->created_at }}</td>
                 </tr>
             @endforeach
-
-
         </table>
     </div>
 @endsection

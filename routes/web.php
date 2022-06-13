@@ -7,9 +7,6 @@ use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use DiDom\Document;
-use Illuminate\Support\Collection;
-
-// use DiDom\Query;
 
 Route::view('/', 'main')->name('main');
 
@@ -24,15 +21,17 @@ Route::post('urls', function (Request $request) {
     $name = implode("://", $parsedUrl);
 
     if (DB::table('urls')->where('name', $name)->exists()) {
+        $status = ['css' => 'info', 'message' => 'Страница существует'];
         $id = DB::table('urls')->where('name', $name)->value('id');
     } else {
         $id = DB::table('urls')->insertGetId([
             'name' => $name,
             'created_at' => Carbon::now()
         ]);
+        $status = ['css' => 'success', 'message' => 'Страница успешно добавлена'];
     }
 
-    return redirect()->route('urls.show', $id); //session status
+    return redirect()->route('urls.show', $id)->with('status', $status);
 })->name('urls.store');
 
 Route::get('urls/{id}', function ($id) {
@@ -60,9 +59,10 @@ Route::get('urls', function () {
 Route::post('urls/{id}/checks', function ($id) {
 
     $url = DB::table('urls')->find($id)->name;
-    $response = Http::get($url);
+
 
     try {
+        $response = Http::get($url);
         $document = new Document($url, true);
         $title = optional($document->first('head>title'))->text();
         $h1 = optional($document->first('body h1'))->text();
@@ -71,9 +71,8 @@ Route::post('urls/{id}/checks', function ($id) {
             fn ($value) => $value
         );
     } catch (\Throwable $th) {
-        $title = null;
-        $h1 = null;
-        $description = null;
+        $status = ['css' => 'danger', 'message' => $th->getMessage()];
+        return back()->with('status', $status);
     }
 
     DB::table('url_checks')->insert([
@@ -81,8 +80,9 @@ Route::post('urls/{id}/checks', function ($id) {
         'title' => $title,
         'h1' => $h1,
         'description' => $description,
-        'status_code' => $response->status(),
+        'status_code' =>  $response->status(),
         'created_at' => Carbon::now()
     ]);
-    return redirect()->route('urls.show', $id); //session status
+    $status = ['css' => 'info', 'message' => 'Страница успешно проверена'];
+    return back()->with('status', $status);
 })->name('urls.checks');
