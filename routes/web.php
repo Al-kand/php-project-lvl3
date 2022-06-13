@@ -60,7 +60,6 @@ Route::post('urls/{id}/checks', function ($id) {
 
     $url = DB::table('urls')->find($id)->name;
 
-
     try {
         $response = Http::get($url);
         $document = new Document($url, true);

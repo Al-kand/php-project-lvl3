@@ -17,9 +17,9 @@ class CreateUrlChecksTable extends Migration
             $table->id();
             $table->foreignId('url_id')->onDelete('cascade')->constrained();
             $table->integer('status_code')->nullable();
-            $table->string('h1')->nullable();
-            $table->string('title')->nullable();
-            $table->string('description')->nullable();
+            $table->text('h1')->nullable();
+            $table->text('title')->nullable();
+            $table->text('description')->nullable();
             $table->dateTime('created_at');
         });
     }
