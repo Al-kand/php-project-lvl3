@@ -83,5 +83,5 @@ Route::post('urls/{id}/checks', function ($id) {
         'created_at' => Carbon::now()
     ]);
     $status = ['css' => 'info', 'message' => 'Страница успешно проверена'];
-    return back()->with('status', $status);
+    return redirect()->route('urls.show', $id)->with('status', $status);
 })->name('urls.checks');
