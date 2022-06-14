@@ -14,7 +14,7 @@
                 @foreach ($urls as $url)
                     <tr>
                         <th>{{ $url->id }}</th>
-                        <th>{{ $url->name }}</th>
+                        <th><a href="{{route('urls.show', $url->id)}}">{{ $url->name }}</a></th>
                         <th>{{ $url->last_check_created_at }}</th>
                         <th>{{ $url->status_code }}</th>
                     </tr>

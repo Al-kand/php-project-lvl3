@@ -36,10 +36,12 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link active" href="{{ route('main') }}">Главная</a>
+                        <a class="nav-link @if (request()->route()->getName() == 'main') active @endif"
+                            href="{{ route('main') }}">Главная</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link " href="{{ route('urls.index') }}">Сайты</a>
+                        <a class="nav-link @if (request()->route()->getName() == 'urls.index') active @endif"
+                            href="{{ route('urls.index') }}">Сайты</a>
                     </li>
                 </ul>
             </div>
