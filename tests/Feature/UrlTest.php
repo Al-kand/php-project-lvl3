@@ -82,8 +82,6 @@ class UrlTest extends TestCase
         $response = $this->post(route('urls.checks', $id));
         $response->assertRedirect(route('urls.show', $id));
         $response->assertSessionHasNoErrors();
-
-        $this->assertDatabaseHas('url_checks', ['url_id' => $id]);
         $response->assertStatus(302);
     }
 }

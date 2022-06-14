@@ -71,7 +71,7 @@ Route::post('urls/{id}/checks', function ($id) {
         );
     } catch (\Throwable $th) {
         $status = ['css' => 'danger', 'message' => $th->getMessage()];
-        return back()->with('status', $status);
+        return redirect()->route('urls.show', $id)->with('status', $status);
     }
 
     DB::table('url_checks')->insert([
