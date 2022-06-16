@@ -22,12 +22,15 @@ Route::post('urls', function (Request $request) {
 
     if (DB::table('urls')->where('name', $name)->exists()) {
         $status = ['css' => 'info', 'message' => 'Страница существует'];
-        $id = DB::table('urls')->where('name', $name)->value('id');
+        $id = DB::table('urls')
+            ->where('name', $name)
+            ->value('id');
     } else {
-        $id = DB::table('urls')->insertGetId([
-            'name' => $name,
-            'created_at' => Carbon::now()
-        ]);
+        $id = DB::table('urls')
+            ->insertGetId([
+                'name' => $name,
+                'created_at' => Carbon::now()
+            ]);
         $status = ['css' => 'success', 'message' => 'Страница успешно добавлена'];
     }
 
@@ -37,7 +40,10 @@ Route::post('urls', function (Request $request) {
 Route::get('urls/{id}', function ($id) {
 
     $url = DB::table('urls')->find($id);
-    $url->checks = DB::table('url_checks')->where('url_id', $id)->orderBy('created_at', 'desc')->get();
+    $url->checks = DB::table('url_checks')
+        ->where('url_id', $id)
+        ->orderBy('created_at', 'desc')
+        ->get();
 
     return view('show', compact('url'));
 })->name('urls.show');
@@ -47,7 +53,8 @@ Route::get('urls', function () {
         ->select('url_id', 'status_code', DB::raw('MAX(created_at) as last_check_created_at'))
         ->groupBy('url_id', 'status_code');
 
-    $urls = DB::table('urls')->orderBy('created_at', 'asc')
+    $urls = DB::table('urls')
+        ->orderBy('created_at', 'asc')
         ->leftJoinSub($latestCheck, 'latest_check', function ($join) {
             $join->on('urls.id', '=', 'latest_check.url_id');
         })
@@ -62,26 +69,37 @@ Route::post('urls/{id}/checks', function ($id) {
 
     try {
         $response = Http::get($url);
-        $document = new Document($url, true);
-        $title = optional($document->first('head>title'))->text();
-        $h1 = optional($document->first('body h1'))->text();
-        $description = optional(
-            $document->first('head>meta[name="description"]::attr(content)'),
-            fn ($value) => $value
-        );
     } catch (\Throwable $th) {
         $status = ['css' => 'danger', 'message' => $th->getMessage()];
         return redirect()->route('urls.show', $id)->with('status', $status);
     }
 
-    DB::table('url_checks')->insert([
-        'url_id' => $id,
-        'title' => $title,
-        'h1' => $h1,
-        'description' => $description,
-        'status_code' =>  $response->status(),
-        'created_at' => Carbon::now()
-    ]);
+    $html = $response->body();
+
+    $document = new Document();
+
+    if (!empty($html)) {
+        $document->loadHtml($html);
+    }
+
+    $title = optional($document->first('head>title'))->text();
+    $h1 = optional($document->first('body h1'))->text();
+    $description = optional(
+        $document->first('head>meta[name="description"]::attr(content)'),
+        fn ($value) => $value
+    );
+
+    DB::table('url_checks')
+        ->insert([
+            'url_id' => $id,
+            'title' => $title,
+            'h1' => $h1,
+            'description' => $description,
+            'status_code' =>  $response->status(),
+            'created_at' => Carbon::now()
+        ]);
+
     $status = ['css' => 'info', 'message' => 'Страница успешно проверена'];
+
     return redirect()->route('urls.show', $id)->with('status', $status);
 })->name('urls.checks');
