@@ -71,33 +71,29 @@ Route::post('urls/{id}/checks', function ($id) {
         $response = Http::get($url);
     } catch (\Throwable $th) {
         $status = ['css' => 'danger', 'message' => $th->getMessage()];
-        return redirect()->route('urls.show', $id)->with('status', $status);
+        return back()->with('status', $status);
     }
+
+    $data = [
+        'url_id' => $id,
+        'status_code' =>  $response->status(),
+        'created_at' => Carbon::now()
+    ];
 
     $html = $response->body();
 
-    $document = new Document();
-
     if (!empty($html)) {
-        $document->loadHtml($html);
+        $document = new Document($html);
+        $data['title'] = optional($document->first('head>title'))->text();
+        $data['h1'] = optional($document->first('body h1'))->text();
+        $data['description'] = optional(
+            $document->first('head>meta[name="description"]::attr(content)'),
+            fn ($value) => $value
+        );
     }
 
-    $title = optional($document->first('head>title'))->text();
-    $h1 = optional($document->first('body h1'))->text();
-    $description = optional(
-        $document->first('head>meta[name="description"]::attr(content)'),
-        fn ($value) => $value
-    );
-
     DB::table('url_checks')
-        ->insert([
-            'url_id' => $id,
-            'title' => $title,
-            'h1' => $h1,
-            'description' => $description,
-            'status_code' =>  $response->status(),
-            'created_at' => Carbon::now()
-        ]);
+        ->insert($data);
 
     $status = ['css' => 'info', 'message' => 'Страница успешно проверена'];
 
