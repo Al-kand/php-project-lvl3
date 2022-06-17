@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Illuminate\Support\Arr;
+// use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use DiDom\Document;
 
@@ -17,8 +17,10 @@ Route::post('urls', function (Request $request) {
     ]);
 
     $inputUrl = $request->input('url')['name'];
-    $parsedUrl = Arr::only(parse_url($inputUrl), ['scheme', 'host']);
-    $name = implode("://", $parsedUrl);
+    $scheme = parse_url($inputUrl, PHP_URL_SCHEME);
+    $host = parse_url($inputUrl, PHP_URL_HOST);
+    $name = "{$scheme}://{$host}";
+
 
     if (DB::table('urls')->where('name', $name)->exists()) {
         $status = ['css' => 'info', 'message' => 'Страница существует'];
@@ -40,10 +42,17 @@ Route::post('urls', function (Request $request) {
 Route::get('urls/{id}', function ($id) {
 
     $url = DB::table('urls')->find($id);
-    $url->checks = DB::table('url_checks')
+
+    if (!is_object($url)) {
+        abort(404);
+    }
+
+    $url = (array)$url;
+    $url['checks'] = DB::table('url_checks')
         ->where('url_id', $id)
         ->orderBy('created_at', 'desc')
         ->get();
+    $url = (object)$url;
 
     return view('show', compact('url'));
 })->name('urls.show');

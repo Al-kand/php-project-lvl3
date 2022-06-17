@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Illuminate\Support\Facades\DB;
-use Faker\Factory;
 use Illuminate\Support\Facades\Http;
 
 class UrlTest extends TestCase
@@ -16,67 +15,47 @@ class UrlTest extends TestCase
     {
         parent::setUp();
 
-        $this->faker = Factory::create();
+        $url = [
+            'name' => 'http://fake.com',
+            'created_at' => '2022-06-17 06:59:24'
+        ];
 
-        $urls = array_map(
-            fn () => [
-                'name' => $this->getUrlName($this->faker->unique()->url()),
-                'created_at' => $this->faker->dateTime()
-            ],
-            range(0, 3)
-        );
-
-        DB::table('urls')->insert($urls);
-    }
-
-    private function getUrlName($url)
-    {
-        return substr($url, 0, strpos($url, '/', 8));
+        DB::table('urls')->insert($url);
     }
 
     public function testMain()
     {
         $response = $this->get(route('main'));
-
         $response->assertOk();
     }
 
     public function testIndex()
     {
         $response = $this->get(route('urls.index'));
-
         $response->assertOk();
     }
 
     public function testStore()
     {
-        $url = $this->faker->unique()->url();
-
-        $data['url'] = ['name' => $url];
+        $data['url'] = ['name' => 'https://domain.com/example'];
         $response = $this->post(route('urls.store'), $data);
-
-        $name = $this->getUrlName($url);
-        $url = DB::table('urls')->where('name', $name)->first();
-        $response->assertRedirect(route('urls.show', $url->id));
-
+        $this->assertDatabaseHas('urls', [
+            'name' => 'https://domain.com'
+        ]);
+        $response->assertRedirect(route('urls.show', 2));
         $response->assertSessionHasNoErrors();
         $response->assertStatus(302);
     }
 
     public function testShow()
     {
-        $id = DB::table('urls')->insertGetId([
-            'name' => $this->getUrlName($this->faker->unique()->url()),
-            'created_at' => $this->faker->dateTime()
-        ]);
-
-        $response = $this->get(route('urls.show', $id));
-
+        $response = $this->get(route('urls.show', 1));
         $response->assertOk();
     }
 
     public function testUrlsChecks()
     {
+        $this->testStore();
         Http::fake();
         $id = 1;
         $response = $this->post(route('urls.checks', $id));
