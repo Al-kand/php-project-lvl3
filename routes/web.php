@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-// use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use DiDom\Document;
 
@@ -23,7 +22,7 @@ Route::post('urls', function (Request $request) {
 
 
     if (DB::table('urls')->where('name', $name)->exists()) {
-        $status = ['css' => 'info', 'message' => 'Страница существует'];
+        flash('Страница существует')->info();
         $id = DB::table('urls')
             ->where('name', $name)
             ->value('id');
@@ -33,10 +32,10 @@ Route::post('urls', function (Request $request) {
                 'name' => $name,
                 'created_at' => Carbon::now()
             ]);
-        $status = ['css' => 'success', 'message' => 'Страница успешно добавлена'];
+        flash('Страница успешно добавлена')->success();
     }
 
-    return redirect()->route('urls.show', $id)->with('status', $status);
+    return redirect()->route('urls.show', $id);
 })->name('urls.store');
 
 Route::get('urls/{id}', function ($id) {
@@ -79,8 +78,8 @@ Route::post('urls/{id}/checks', function ($id) {
     try {
         $response = Http::get($url);
     } catch (\Throwable $th) {
-        $status = ['css' => 'danger', 'message' => $th->getMessage()];
-        return back()->with('status', $status);
+        flash($th->getMessage())->error();
+        return redirect()->route('urls.show', $id);
     }
 
     $data = [
@@ -104,7 +103,6 @@ Route::post('urls/{id}/checks', function ($id) {
     DB::table('url_checks')
         ->insert($data);
 
-    $status = ['css' => 'info', 'message' => 'Страница успешно проверена'];
-
-    return redirect()->route('urls.show', $id)->with('status', $status);
+    flash('Страница успешно проверена')->info();
+    return redirect()->route('urls.show', $id);
 })->name('urls.checks');
