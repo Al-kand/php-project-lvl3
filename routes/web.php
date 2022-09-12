@@ -77,8 +77,11 @@ Route::post('urls/{id}/checks', function ($id) {
 
     try {
         $response = Http::get($url);
-    } catch (\Throwable $th) {
-        flash($th->getMessage())->error();
+    } catch (\Illuminate\Http\Client\ConnectionException $error) {
+        flash($error->getMessage())->error();
+        return redirect()->route('urls.show', $id);
+    } catch (\Exception) {
+        flash('Что-то пошло не так')->error();
         return redirect()->route('urls.show', $id);
     }
 
