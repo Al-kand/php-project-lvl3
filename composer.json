@@ -1,10 +1,11 @@
 {
     "name": "hexlet/code",
     "type": "project",
-    "description": "The Laravel Framework.",
+    "description": "Анализатор главных страниц сайтов",
     "keywords": [
-        "framework",
-        "laravel"
+        "анализатор страниц",
+        "title",
+        "description"
     ],
     "license": "MIT",
     "require": {
