@@ -17,3 +17,6 @@ deploy:
 
 lint:
 	composer exec --verbose phpcs -- --standard=PSR12 routes app tests
+
+test-coverage:
+	composer exec --verbose phpunit tests -- --coverage-clover build/logs/clover.xml	
