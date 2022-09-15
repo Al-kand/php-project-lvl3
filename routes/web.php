@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use DiDom\Document;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\Client\ConnectionException;
 
 Route::view('/', 'main')->name('main');
 
@@ -42,18 +44,14 @@ Route::get('urls/{id}', function ($id) {
 
     $url = DB::table('urls')->find($id);
 
-    if (!is_object($url)) {
-        abort(404);
-    }
+    abort_if(!is_object($url), 404);
 
-    $url = (array)$url;
-    $url['checks'] = DB::table('url_checks')
+    $checks = DB::table('url_checks')
         ->where('url_id', $id)
         ->orderBy('created_at', 'desc')
         ->get();
-    $url = (object)$url;
 
-    return view('show', compact('url'));
+    return view('show', compact('url', 'checks'));
 })->name('urls.show');
 
 Route::get('urls', function () {
@@ -77,7 +75,10 @@ Route::post('urls/{id}/checks', function ($id) {
 
     try {
         $response = Http::get($url);
-    } catch (\Illuminate\Http\Client\ConnectionException $error) {
+    } catch (RequestException $error) {
+        flash($error->getMessage())->error();
+        return redirect()->route('urls.show', $id);
+    } catch (ConnectionException $error) {
         flash($error->getMessage())->error();
         return redirect()->route('urls.show', $id);
     } catch (\Exception) {
