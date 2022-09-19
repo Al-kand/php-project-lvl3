@@ -50,7 +50,7 @@
     <main class="flex-grow-1">
         @error('url.name')
             <div class="alert alert-danger" role="alert">
-                Некорректный URL
+                {{ __('Invalid URL') }}
             </div>
         @enderror
         @yield('content')

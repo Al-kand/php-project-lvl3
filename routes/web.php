@@ -24,7 +24,7 @@ Route::post('urls', function (Request $request) {
 
 
     if (DB::table('urls')->where('name', $name)->exists()) {
-        flash('Страница существует')->info();
+        flash(__('Page exists'))->info();
         $id = DB::table('urls')
             ->where('name', $name)
             ->value('id');
@@ -34,7 +34,7 @@ Route::post('urls', function (Request $request) {
                 'name' => $name,
                 'created_at' => Carbon::now()
             ]);
-        flash('Страница успешно добавлена')->success();
+        flash(__('Page added successfully'))->success();
     }
 
     return redirect()->route('urls.show', $id);
@@ -82,7 +82,7 @@ Route::post('urls/{id}/checks', function ($id) {
         flash($error->getMessage())->error();
         return redirect()->route('urls.show', $id);
     } catch (\Exception) {
-        flash('Что-то пошло не так')->error();
+        flash(__('Something went wrong'))->error();
         return redirect()->route('urls.show', $id);
     }
 
@@ -107,6 +107,6 @@ Route::post('urls/{id}/checks', function ($id) {
     DB::table('url_checks')
         ->insert($data);
 
-    flash('Страница успешно проверена')->info();
+    flash(__('Page verified successfully'))->info();
     return redirect()->route('urls.show', $id);
 })->name('urls.checks');
