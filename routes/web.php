@@ -44,7 +44,7 @@ Route::get('urls/{id}', function ($id) {
 
     $url = DB::table('urls')->find($id);
 
-    abort_if(!is_object($url), 404);
+    abort_unless(is_object($url), 404);
 
     $checks = DB::table('url_checks')
         ->where('url_id', $id)
@@ -80,9 +80,6 @@ Route::post('urls/{id}/checks', function ($id) {
         return redirect()->route('urls.show', $id);
     } catch (ConnectionException $error) {
         flash($error->getMessage())->error();
-        return redirect()->route('urls.show', $id);
-    } catch (\Exception) {
-        flash(__('Something went wrong'))->error();
         return redirect()->route('urls.show', $id);
     }
 
