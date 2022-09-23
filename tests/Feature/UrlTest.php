@@ -11,6 +11,9 @@ class UrlTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $id;
+    protected $urls;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -21,6 +24,25 @@ class UrlTest extends TestCase
         ];
 
         DB::table('urls')->insert($url);
+        $this->id = DB::table('urls')->where($url)->first()->id;
+
+        $this->urls = [
+            'empty' => '',
+            'long' => 'https://domaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' .
+                'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' .
+                'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaain.com',
+            'noValid' => 'https//domain.com',
+            'valid' => 'https://domain.com/path?data=value&foo=bar',
+        ];
+    }
+
+    private function getUrlName($key)
+    {
+        return [
+            'url' => [
+                'name' => $this->urls[$key]
+            ]
+        ];
     }
 
     public function testMain()
@@ -37,33 +59,46 @@ class UrlTest extends TestCase
 
     public function testStore()
     {
-        $data['url'] = ['name' => 'https://domain.com/example'];
-        $response = $this->post(route('urls.store'), $data);
+        $response = $this->post(route('urls.store'), $this->getUrlName('empty'));
+        $response->assertSessionHasErrors();
+        $response->assertStatus(302);
+
+        $response = $this->post(route('urls.store'), $this->getUrlName('long'));
+        $response->assertSessionHasErrors();
+        $response->assertStatus(302);
+
+        $response = $this->post(route('urls.store'), $this->getUrlName('noValid'));
+        $response->assertSessionHasErrors();
+        $response->assertStatus(302);
+
+        $this->assertDatabaseMissing('urls', [
+            'name' => 'https://domain.com'
+        ]);
+
+        $response = $this->post(route('urls.store'), $this->getUrlName('valid'));
+        $response->assertSessionHasNoErrors();
+        $response->assertStatus(302);
+
         $this->assertDatabaseHas('urls', [
             'name' => 'https://domain.com'
         ]);
-        $response->assertRedirect(route('urls.show', 2));
-        $response->assertSessionHasNoErrors();
-        $response->assertStatus(302);
     }
 
     public function testShow()
     {
-        $response = $this->get(route('urls.show', 1));
+        $response = $this->get(route('urls.show', $this->id));
         $response->assertOk();
     }
 
     public function testUrlsChecks()
     {
-        $this->testStore();
         Http::fake();
-        $id = 1;
-        $response = $this->post(route('urls.checks', $id));
-        $response->assertRedirect(route('urls.show', $id));
+        $response = $this->post(route('urls.checks', $this->id));
+        $response->assertRedirect(route('urls.show', $this->id));
         $response->assertSessionHasNoErrors();
         $response->assertStatus(302);
         $this->assertDatabaseHas('url_checks', [
-            'url_id' => $id,
+            'url_id' => $this->id,
         ]);
     }
 }
