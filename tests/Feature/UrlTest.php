@@ -11,7 +11,21 @@ class UrlTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * id
+     *
+     * @var int
+     *
+     */
     protected $id;
+
+
+    /**
+     * urls
+     *
+     * @var array
+     *
+     */
     protected $urls;
 
     protected function setUp(): void
@@ -24,7 +38,8 @@ class UrlTest extends TestCase
         ];
 
         DB::table('urls')->insert($url);
-        $this->id = DB::table('urls')->where($url)->first()->id;
+        $model = DB::table('urls')->where($url)->first();
+        $this->id = $model->id ?? 0;
 
         $this->urls = [
             'empty' => '',
@@ -36,7 +51,7 @@ class UrlTest extends TestCase
         ];
     }
 
-    private function getUrlName($key)
+    private function getUrlName(string $key): array
     {
         return [
             'url' => [
