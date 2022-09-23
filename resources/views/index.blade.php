@@ -15,11 +15,13 @@
                     <tr>
                         <th>{{ $url->id }}</th>
                         <th><a href="{{route('urls.show', $url->id)}}">{{ $url->name }}</a></th>
-                        <th>{{ $url->last_check_created_at }}</th>
-                        <th>{{ $url->status_code }}</th>
+                        <th>{{ $latestCheck->firstWhere('url_id', $url->id)->status_code ?? ''}}</th>
+                        <th>{{ $latestCheck->firstWhere('url_id', $url->id)->last_check_created_at ?? '' }}</th>
                     </tr>
                 @endforeach
             </table>
+            
         </div>
+        {{ $urls->links() }}
     </div>
 @endsection

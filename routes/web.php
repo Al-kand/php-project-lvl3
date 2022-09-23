@@ -57,16 +57,14 @@ Route::get('urls/{id}', function ($id) {
 Route::get('urls', function () {
     $latestCheck = DB::table('url_checks')
         ->select('url_id', 'status_code', DB::raw('MAX(created_at) as last_check_created_at'))
-        ->groupBy('url_id', 'status_code');
+        ->groupBy('url_id', 'status_code')
+        ->get();
 
     $urls = DB::table('urls')
         ->orderBy('created_at', 'asc')
-        ->leftJoinSub($latestCheck, 'latest_check', function ($join) {
-            $join->on('urls.id', '=', 'latest_check.url_id');
-        })
-        ->get();
+        ->simplePaginate();
 
-    return view('index', compact('urls'));
+    return view('index', compact('urls', 'latestCheck'));
 })->name('urls.index');
 
 Route::post('urls/{id}/checks', function ($id) {
