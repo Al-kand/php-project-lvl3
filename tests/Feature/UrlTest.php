@@ -37,10 +37,7 @@ class UrlTest extends TestCase
             'created_at' => '2022-06-17 06:59:24'
         ];
 
-        DB::table('urls')->insert($url);
-        $model = DB::table('urls')->where($url)->first();
-        $this->id = $model->id ?? 0;
-
+        $this->id = DB::table('urls')->insertGetId($url);
         $this->urls = [
             'empty' => '',
             'long' => 'https://domaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' .
