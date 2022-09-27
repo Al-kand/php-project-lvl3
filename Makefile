@@ -5,6 +5,7 @@ setup:
 	composer install
 	cp -n .env.example .env|| true
 	php artisan key:gen --ansi
+	php artisan migrate --force
 
 log:
 	tail -f storage/logs/laravel.log

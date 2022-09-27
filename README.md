@@ -29,36 +29,18 @@ git clone https://github.com/Al-kand/php-project-lvl3.git
 cd php-project-lvl3
 ```
 
-3. Установите пакеты при помощи composer
+3. Установите приложение
 
 ```
-composer install
+make setup
 ```
 
-4. Создайте и при необходимости отредактируйте файл .env
+4. Запустите приложение на локальном сервере
 
 ```
-cp -n .env.example .env
+make start
 ```
-
-5. Установите ключ
-
-```
-php artisan key:genеrате
-```
-
-6. Создайте таблицы в базе данных
-
-```
-php artisan migrate
-```
-
-7. Запустите приложение на локальном сервере
-
-```
-php artisan serve --host localhost
-```
-8. Приложение доступно по адресу `http://localhost:8000`
+5. Приложение доступно по адресу `http://0.0.0.0:8000`
 
 ## Пример
 
