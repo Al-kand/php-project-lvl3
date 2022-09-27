@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 
 class UrlTest extends TestCase
 {
@@ -100,17 +99,5 @@ class UrlTest extends TestCase
     {
         $response = $this->get(route('urls.show', $this->id));
         $response->assertOk();
-    }
-
-    public function testUrlsChecks()
-    {
-        Http::fake();
-        $response = $this->post(route('urls.checks', $this->id));
-        $response->assertRedirect(route('urls.show', $this->id));
-        $response->assertSessionHasNoErrors();
-        $response->assertStatus(302);
-        $this->assertDatabaseHas('url_checks', [
-            'url_id' => $this->id,
-        ]);
     }
 }
