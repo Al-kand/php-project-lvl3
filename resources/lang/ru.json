@@ -1,7 +1,7 @@
 {
     "Invalid URL": "Некорректный URL",
     "Page added successfully": "Страница успешно добавлена",
-    "Page exists": "Страница существует",
+    "Page exists": "Страница уже существует",
     "Page verified successfully": "Страница успешно проверена",
     "Something went wrong": "Что-то пошло не так"
 }
